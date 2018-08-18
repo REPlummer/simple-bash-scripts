@@ -1,0 +1,30 @@
+LOGFILE=/var/log/load_kill_log
+PSFILE=/var/log/ps_log
+loadavg=`uptime |cut -d , -f 4|cut -d : -f 2`
+thisloadavg=`echo $loadavg|awk -F \. '{print $1}'`
+
+        if [ "$thisloadavg" -ge "20" ]
+        then
+                /bin/ps auxfww >> $PSFILE
+                /bin/date >> $LOGFILE
+                echo 'The load when killed was: '$thisloadavg >> $LOGFILE
+                /bin/systemctl restart mysql
+                /bin/systemctl restart httpd
+                /bin/killall -9 hhvm
+                /bin/systemctl start hhvm
+        else [ "$thisloadavg" -lt "20" ]
+                echo "Load Average is currently: $thisloadavg"
+
+        fi
+
+code_status=$(curl -s -o /dev/null -I -w '%{http_code}' -X POST 'http://url.tld/site/' -H 'Content-Length: 0')
+
+        if [ "$code_status" -ge "400" ]
+        then
+                /bin/date >> $LOGFILE
+                echo 'HTTP Status when killed was: '$code_status >> $LOGFILE
+                /bin/killall -9 hhvm
+                /bin/systemctl start hhvm
+        else [ "$code_status" -ge "400" ]
+                echo "HTTP Status is currently: $code_status"
+        fi
